@@ -1,0 +1,117 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "vnetname1": {
+            "type": "string"
+        },
+        "vnetname2": {
+            "type": "string"
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('vnetname1')]",
+            "type": "Microsoft.Network/VirtualNetworks",
+            "apiVersion": "2019-09-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [],
+            "tags": {},
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.1.1.0/24"
+                        }
+                    }
+                ]
+
+
+            },
+            "resources": [
+                {
+                    "name": "VNET1-to-VNET2",
+                    "type": "virtualNetworkPeerings",
+                    "apiVersion": "2020-06-01",
+                    "DependsOn": [
+                        "[resourceId('Microsoft.Network/VirtualNetworks', parameters('vnetname1'))]"
+                    ],
+                    "properties": {
+                        "allowVirtualNetworkAccess": true,
+                        "allowForwardedTraffic": true,
+                        "allowGatewayTransit": false,
+                        "useRemoteGateways": false,
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/VirtualNetworks', parameters('vnetname2'))]"
+                        },
+                        "remoteAddressSpace": {
+                            "addressPrefixes": [
+                                "10.0.0.0/16"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[parameters('vnetname2')]",
+            "type": "Microsoft.Network/VirtualNetworks",
+            "apiVersion": "2019-09-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [],
+            "tags": {},
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24"
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "name": "VNET2-to-VNET1",
+                    "type": "virtualNetworkPeerings",
+                    "apiVersion": "2020-06-01",
+                    "DependsOn": [
+                        "[resourceId('Microsoft.Network/VirtualNetworks', parameters('vnetname2'))]"
+                    ],
+                    "properties": {
+                        "allowVirtualNetworkAccess": true,
+                        "allowForwardedTraffic": true,
+                        "allowGatewayTransit": false,
+                        "useRemoteGateways": false,
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/VirtualNetworks', parameters('vnetname1'))]"
+                        },
+                        "remoteAddressSpace": {
+                            "addressPrefixes": [
+                                "10.1.0.0/16"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+
+    ],
+    "outputs": {}
+}
